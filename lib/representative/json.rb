@@ -15,7 +15,6 @@ module Representative
       @indent_level = 0
       @indentation = options.has_key?(:indentation) ? options[:indentation].to_i : DEFAULT_INDENTATION
       @indent_spaces = " " * @indentation
-      @colon = @indentation > 0 ? ": " : ":"
       @attribute_prefix = options[:attribute_prefix] || DEFAULT_ATTRIBUTE_PREFIX
       now_at :beginning_of_buffer
       yield self if block_given?
@@ -109,7 +108,11 @@ module Representative
     end
 
     def emit_colon
-      emit(@colon)
+      if @indentation > 0
+        emit(": ")
+      else
+        emit(":")
+      end
     end
 
     def emit(s)
