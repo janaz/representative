@@ -7,14 +7,11 @@ module Representative
   class Json < Base
 
     DEFAULT_ATTRIBUTE_PREFIX = "@".freeze
-    DEFAULT_INDENTATION = 2
 
     def initialize(subject = nil, options = {})
       super(subject, options)
       @buffer = []
       @indent_level = 0
-      @indentation = options.has_key?(:indentation) ? options[:indentation].to_i : DEFAULT_INDENTATION
-      @indent_spaces = " " * @indentation
       @attribute_prefix = options[:attribute_prefix] || DEFAULT_ATTRIBUTE_PREFIX
       now_at :beginning_of_buffer
       yield self if block_given?
@@ -85,7 +82,7 @@ module Representative
     end
 
     def to_json
-      emit_new_line
+      @buffer << "\n"
       @buffer.join
     end
 
@@ -95,26 +92,6 @@ module Representative
 
     private
 
-    def emit_indentation
-      if @indentation > 0
-        emit(@indent_spaces * @indent_level)
-      end
-    end
-
-    def emit_new_line
-      if @indentation > 0
-        emit("\n")
-      end
-    end
-
-    def emit_colon
-      if @indentation > 0
-        emit(": ")
-      else
-        emit(":")
-      end
-    end
-
     def emit(s)
       @buffer << s
     end
@@ -123,17 +100,20 @@ module Representative
       ActiveSupport::JSON.encode(data)
     end
 
+    def indentation
+      ("  " * @indent_level)
+    end
+
     def label(name)
       return false if @indent_level == 0
       new_item
-      emit(format_name(name).inspect)
-      emit_colon
+      emit(format_name(name).inspect + ": ")
     end
 
     def new_item
       emit(",") if at? :end_of_item
-      emit_new_line unless at? :beginning_of_buffer
-      emit_indentation
+      emit("\n") unless at? :beginning_of_buffer
+      emit(indentation)
       @pending_comma = ","
     end
 
@@ -143,10 +123,7 @@ module Representative
       now_at :beginning_of_block
       yield
       @indent_level -= 1
-      unless at? :beginning_of_block
-        emit_new_line
-        emit_indentation
-      end
+      emit("\n" + indentation) unless at? :beginning_of_block
       emit(closing_char)
       now_at :end_of_item
     end
