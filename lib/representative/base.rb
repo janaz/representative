@@ -23,8 +23,8 @@ module Representative
 
     # Evaluate a block with a specified object as #subject.
     #
-    def representing(new_subject, &block)
-      with_subject(resolve_value(new_subject), &block)
+    def representing(new_subject)
+      with_subject(resolve_value(new_subject)) {yield}
     end
 
     protected

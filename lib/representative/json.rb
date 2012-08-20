@@ -21,8 +21,7 @@ module Representative
 
     attr_reader :attribute_prefix
 
-    def element(name, *args, &block)
-
+    def element(name, *args)
       metadata = @inspector.get_metadata(current_subject, name)
       attributes = args.extract_options!.merge(metadata)
 
@@ -35,15 +34,18 @@ module Representative
       raise ArgumentError, "too many arguments" unless args.empty?
 
       label(name)
-      value(subject_of_element, attributes, &block)
-
+      if (block_given?)
+        value(subject_of_element, attributes) { yield }
+      else
+        value(subject_of_element, attributes)
+      end
     end
 
     def attribute(name, value_generator = name)
       element(attribute_prefix + name.to_s, value_generator)
     end
 
-    def list_of(name, *args, &block)
+    def list_of(name, *args)
       options = args.extract_options!
       list_subject = args.empty? ? name : args.shift
       raise ArgumentError, "too many arguments" unless args.empty?
@@ -56,7 +58,11 @@ module Representative
       inside "[", "]" do
         items.each do |item|
           new_item
-          value(item, item_attributes, &block)
+          if (block_given?)
+            value(item, item_attributes) { yield }
+          else
+            value(item, item_attributes)
+          end
         end
       end
     end
