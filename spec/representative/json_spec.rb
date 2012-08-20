@@ -368,4 +368,14 @@ describe Representative::Json do
 
   end
 
+  describe "when object's method returns a symbol" do
+    it "should convert the symbol to string" do
+      @object = OpenStruct.new(:key => :value)
+      r(:indentation => false).element :object, @object do |o|
+        r.element :key
+      end
+      resulting_json.should == %({"key":null})
+    end
+  end
+
 end
